@@ -12,98 +12,101 @@ if (loginForm) {
         e.preventDefault();
 
         const messageDiv = document.querySelector('#error-message');
-        const recaptchaResponse = grecaptcha.getResponse();
+        
+        // Adicionado para reCAPTCHA v3
+        grecaptcha.ready(function() {
+            // IMPORTANTE: Use a mesma chave de site do reCAPTCHA v3 que você colocou no seu HTML.
+            grecaptcha.execute('6Le17_ErAAAAAGeSf-darAvcmbMDYSxhv_1T7ufH', {action: 'login'}).then(function(token) {
+                
+                // O token é gerado, agora podemos prosseguir com o login.
+                // A validação do token deveria ser feita no backend, mas para o Firebase Auth no cliente,
+                // a execução bem-sucedida já é um bom passo.
 
-        if (!recaptchaResponse) {
-            messageDiv.textContent = 'Por favor, complete o reCAPTCHA.';
-            messageDiv.classList.remove('d-none', 'alert-success');
-            messageDiv.classList.add('alert-danger');
-            return;
-        }
+                const email = loginForm['email'].value;
+                const password = loginForm['password'].value;
 
-        const email = loginForm['email'].value;
-        const password = loginForm['password'].value;
+                const now = new Date().getTime();
+                const loginAttempts = JSON.parse(localStorage.getItem('loginAttempts') || '{}');
+                const userData = loginAttempts[email] || { attempts: 0, blockUntil: null };
 
-        const now = new Date().getTime();
-        const loginAttempts = JSON.parse(localStorage.getItem('loginAttempts') || '{}');
-        const userData = loginAttempts[email] || { attempts: 0, blockUntil: null };
-
-        // 1. VERIFICAR SE A CONTA ESTÁ BLOQUEADA
-        if (userData.blockUntil && now < userData.blockUntil) {
-            const remainingTime = Math.ceil((userData.blockUntil - now) / (1000 * 60));
-            const friendlyMessage = `Muitas tentativas de login. Sua conta está bloqueada. Tente novamente em ${remainingTime} minutos.`;
-            
-            if (messageDiv) {
-                messageDiv.textContent = friendlyMessage;
-                messageDiv.classList.remove('d-none', 'alert-success');
-                messageDiv.classList.add('alert-danger');
-            } else {
-                alert(friendlyMessage);
-            }
-            return; // Impede a tentativa de login
-        }
-
-        // Reseta o bloqueio se o tempo já passou
-        if (userData.blockUntil && now >= userData.blockUntil) {
-            userData.attempts = 0;
-            userData.blockUntil = null;
-        }
-
-        // Tenta autenticar o usuário com Firebase Auth
-        auth.signInWithEmailAndPassword(email, password).then(cred => {
-            // SUCESSO NO LOGIN: Limpa as tentativas e redireciona
-            delete loginAttempts[email];
-            localStorage.setItem('loginAttempts', JSON.stringify(loginAttempts));
-
-            if (messageDiv) {
-                loginForm.querySelector('button').disabled = true;
-                loginForm.querySelector('input[type="email"]').disabled = true;
-                loginForm.querySelector('input[type="password"]').disabled = true;
-
-                messageDiv.textContent = 'Acesso Válido! Seja Bem Vindo.';
-                messageDiv.classList.remove('d-none', 'alert-danger');
-                messageDiv.classList.add('alert-success');
-
-                setTimeout(() => {
-                    window.location.replace('index.html');
-                }, 2000);
-            } else {
-                alert('Acesso Válido! Seja Bem Vindo.');
-                window.location.replace('index.html');
-            }
-        }).catch(err => {
-            let friendlyMessage = 'Email ou senha incorretos. Tente novamente!';
-
-            switch (err.code) {
-                case 'auth/user-not-found':
-                case 'auth/invalid-email':
-                    friendlyMessage = 'E-mail não encontrado. Verifique o e-mail digitado.';
-                    break;
-                case 'auth/wrong-password':
-                    // 2. FALHA NO LOGIN: Incrementa as tentativas e bloqueia se necessário
-                    userData.attempts += 1;
-                    if (userData.attempts >= 3) {
-                        userData.blockUntil = now + 10 * 60 * 1000; // Bloqueia por 10 minutos
-                        friendlyMessage = 'Senha incorreta. Você excedeu o número de tentativas. A conta foi bloqueada por 10 minutos.';
+                // 1. VERIFICAR SE A CONTA ESTÁ BLOQUEADA
+                if (userData.blockUntil && now < userData.blockUntil) {
+                    const remainingTime = Math.ceil((userData.blockUntil - now) / (1000 * 60));
+                    const friendlyMessage = `Muitas tentativas de login. Sua conta está bloqueada. Tente novamente em ${remainingTime} minutos.`;
+                    
+                    if (messageDiv) {
+                        messageDiv.textContent = friendlyMessage;
+                        messageDiv.classList.remove('d-none', 'alert-success');
+                        messageDiv.classList.add('alert-danger');
                     } else {
-                        const remainingAttempts = 3 - userData.attempts;
-                        friendlyMessage = `Senha incorreta. Você tem mais ${remainingAttempts} tentativa(s).`;
+                        alert(friendlyMessage);
                     }
-                    loginAttempts[email] = userData;
-                    localStorage.setItem('loginAttempts', JSON.stringify(loginAttempts));
-                    break;
-                case 'auth/too-many-requests':
-                    friendlyMessage = 'Acesso bloqueado temporariamente após 3 tentativas invalidas. Tente novamente após 10min.';
-                    break;
-            }
+                    return; // Impede a tentativa de login
+                }
 
-            if (messageDiv) {
-                messageDiv.textContent = friendlyMessage;
-                messageDiv.classList.remove('d-none', 'alert-success');
-                messageDiv.classList.add('alert-danger');
-            } else {
-                alert(friendlyMessage);
-            }
+                // Reseta o bloqueio se o tempo já passou
+                if (userData.blockUntil && now >= userData.blockUntil) {
+                    userData.attempts = 0;
+                    userData.blockUntil = null;
+                }
+
+                // Tenta autenticar o usuário com Firebase Auth
+                auth.signInWithEmailAndPassword(email, password).then(cred => {
+                    // SUCESSO NO LOGIN: Limpa as tentativas e redireciona
+                    delete loginAttempts[email];
+                    localStorage.setItem('loginAttempts', JSON.stringify(loginAttempts));
+
+                    if (messageDiv) {
+                        loginForm.querySelector('button').disabled = true;
+                        loginForm.querySelector('input[type="email"]').disabled = true;
+                        loginForm.querySelector('input[type="password"]').disabled = true;
+
+                        messageDiv.textContent = 'Acesso Válido! Seja Bem Vindo.';
+                        messageDiv.classList.remove('d-none', 'alert-danger');
+                        messageDiv.classList.add('alert-success');
+
+                        setTimeout(() => {
+                            window.location.replace('index.html');
+                        }, 2000);
+                    } else {
+                        alert('Acesso Válido! Seja Bem Vindo.');
+                        window.location.replace('index.html');
+                    }
+                }).catch(err => {
+                    let friendlyMessage = 'Email ou senha incorretos. Tente novamente!';
+
+                    switch (err.code) {
+                        case 'auth/user-not-found':
+                        case 'auth/invalid-email':
+                            friendlyMessage = 'E-mail não encontrado. Verifique o e-mail digitado.';
+                            break;
+                        case 'auth/wrong-password':
+                            // 2. FALHA NO LOGIN: Incrementa as tentativas e bloqueia se necessário
+                            userData.attempts += 1;
+                            if (userData.attempts >= 3) {
+                                userData.blockUntil = now + 10 * 60 * 1000; // Bloqueia por 10 minutos
+                                friendlyMessage = 'Senha incorreta. Você excedeu o número de tentativas. A conta foi bloqueada por 10 minutos.';
+                            } else {
+                                const remainingAttempts = 3 - userData.attempts;
+                                friendlyMessage = `Senha incorreta. Você tem mais ${remainingAttempts} tentativa(s).`;
+                            }
+                            loginAttempts[email] = userData;
+                            localStorage.setItem('loginAttempts', JSON.stringify(loginAttempts));
+                            break;
+                        case 'auth/too-many-requests':
+                            friendlyMessage = 'Acesso bloqueado temporariamente após 3 tentativas invalidas. Tente novamente após 10min.';
+                            break;
+                    }
+
+                    if (messageDiv) {
+                        messageDiv.textContent = friendlyMessage;
+                        messageDiv.classList.remove('d-none', 'alert-success');
+                        messageDiv.classList.add('alert-danger');
+                    } else {
+                        alert(friendlyMessage);
+                    }
+                });
+            });
         });
     });
 }
