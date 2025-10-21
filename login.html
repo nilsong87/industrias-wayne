@@ -19,6 +19,9 @@
 
     <!-- CSS Customizado - Estilos específicos da aplicação (tema escuro) -->
     <link rel="stylesheet" href="css/style.css">
+
+    <!-- Script do Google reCAPTCHA v2 -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 
 <!-- ===== CORPO DA PÁGINA COM TEMA ESCURO ===== -->
@@ -76,6 +79,11 @@
                             type="password": Oculta os caracteres digitados
                             required: Campo obrigatório
                         -->
+                    </div>
+
+                    <!-- reCAPTCHA -->
+                    <div class="mb-3 recaptcha-container">
+                        <div class="g-recaptcha" data-sitekey="6LeF6_ErAAAAAOGQ5yhRewmLqPAna_ScUe5MOpHt" ></div>
                     </div>
 
                     <!-- Botão de Submissão -->

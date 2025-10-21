@@ -11,9 +11,18 @@ if (loginForm) {
     loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
+        const messageDiv = document.querySelector('#error-message');
+        const recaptchaResponse = grecaptcha.getResponse();
+
+        if (!recaptchaResponse) {
+            messageDiv.textContent = 'Por favor, complete o reCAPTCHA.';
+            messageDiv.classList.remove('d-none', 'alert-success');
+            messageDiv.classList.add('alert-danger');
+            return;
+        }
+
         const email = loginForm['email'].value;
         const password = loginForm['password'].value;
-        const messageDiv = document.querySelector('#error-message');
 
         const now = new Date().getTime();
         const loginAttempts = JSON.parse(localStorage.getItem('loginAttempts') || '{}');

@@ -75,3 +75,8 @@ body {
     #site-footer { height: 70px; }
     body { padding-bottom: 70px; }
 }
+
+.recaptcha-container {
+    display: flex;
+    justify-content: center;
+}
