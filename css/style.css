@@ -1,0 +1,77 @@
+/* ===== ESTILOS GERAIS ===== */
+
+/* Define o estilo do corpo da página */
+body {
+    background-color: #121212; /* Cor de fundo escura para modo escuro */
+    padding-bottom: 60px; /* deve ser igual à altura do footer */
+}
+
+/* ===== CLASSES UTILITÁRIAS ===== */
+
+/* Classe para elementos com fundo escuro secundário */
+.bg-dark-2 {
+    background-color: #1e1e1e !important; /* Cor mais clara que o fundo principal, mas ainda escura */
+}
+
+/* ===== COMPONENTES DE CARTA ===== */
+
+/* Estilização para componentes do tipo card */
+.card {
+    border: 1px solid #333; /* Borda sutil em cinza escuro */
+}
+
+/* ===== FORMULÁRIOS E CONTROLES ===== */
+
+/* Estilização para campos de entrada e seleção */
+.form-control, .form-select {
+    border: 1px solid #333; /* Borda consistente com o tema escuro */
+}
+
+/* Estados de foco para campos de formulário */
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd; /* Borda azul quando o campo está em foco */
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); /* Sombra azul sutil ao redor */
+    background-color: #2a2a2a; /* Fundo mais claro quando em foco */
+    color: #fff; /* Texto branco para contraste */
+}
+
+/* ===== NAVEGAÇÃO ===== */
+
+/* Estilo para links de navegação ativos */
+.nav-link.active {
+    color: #fff !important; /* Texto branco para links ativos */
+    font-weight: bold; /* Destaque em negrito */
+}
+
+/* ===== TABELAS ===== */
+
+/* Personalização de tabelas usando variáveis CSS do Bootstrap */
+.table {
+    --bs-table-bg: #1e1e1e; /* Cor de fundo da tabela */
+    --bs-table-color: #fff; /* Cor do texto da tabela */
+    --bs-table-border-color: #333; /* Cor das bordas da tabela */
+    --bs-table-striped-bg: #2a2a2a; /* Cor de fundo para linhas zebradas */
+    --bs-table-hover-bg: #3a3a3a; /* Cor de fundo ao passar o mouse */
+}
+
+/* Footer fixo */
+#site-footer{
+    color: #fff !important;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 60px;          /* altura do footer */
+    background: #121212;   /* cor escura compatível com tema */
+    border-top: 1px solid rgba(255,255,255,0.04);
+    z-index: 1050;
+}
+
+
+
+/* Ajustes responsivos menores */
+@media (max-width: 576px) {
+    #site-footer .container { padding-left: 0.75rem; padding-right: 0.75rem; }
+    #site-footer { height: 70px; }
+    body { padding-bottom: 70px; }
+}

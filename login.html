@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <!-- ===== CONFIGURAÇÕES BÁSICAS DA PÁGINA ===== -->
+    <meta charset="UTF-8">
+    <!-- Viewport para design responsivo em dispositivos móveis -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indústrias Wayne - Acesso Restrito</title>
+
+    <!-- ===== LINKS PARA BIBLIOTECAS EXTERNAS ===== -->
+
+    <!-- ===== FAVICON E ÍCONES ===== -->
+    <link rel="icon" href="/images/favicon_io/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/images/favicon_io/favicon.ico" type="image/x-icon">
+
+    <!-- Bootstrap 5.3.3 - Framework CSS para styling responsivo -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- CSS Customizado - Estilos específicos da aplicação (tema escuro) -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<!-- ===== CORPO DA PÁGINA COM TEMA ESCURO ===== -->
+
+<body class="bg-dark text-light">
+
+    <!-- ===== CONTAINER PRINCIPAL CENTRALIZADO ===== -->
+    <div class="container vh-100 d-flex justify-content-center align-items-center">
+        <!-- 
+            vh-100: Ocupa 100% da altura da viewport
+            d-flex: Ativa flexbox
+            justify-content-center: Centraliza horizontalmente
+            align-items-center: Centraliza verticalmente
+        -->
+
+        <!-- ===== CARD DE LOGIN ===== -->
+        <div class="card bg-dark-2 text-light p-4" style="width: 100%; max-width: 400px;">
+            <!-- 
+                bg-dark-2: Cor de fundo personalizada (mais clara que o fundo principal)
+                p-4: Padding interno de 4 unidades (1.5rem)
+                max-width: 400px: Largura máxima para manter boa legibilidade
+            -->
+
+            <div class="card-body">
+                <!-- ===== CABEÇALHO DO CARD ===== -->
+                <div class="text-center mb-4">
+                    <!-- Logo da empresa -->
+                    <img src="/images/logo.png" alt="Wayne Enterprises Logo" style="width: 140px;">
+
+                    <!-- Título da página -->
+                    <h3 class="mt-3">Acesso ao Sistema</h3>
+
+                    <!-- Subtítulo com cor personalizada -->
+                    <p class="text-muted" style="color: #0d6efd !important;">Indústrias Wayne</p>
+                </div>
+
+                <!-- ===== FORMULÁRIO DE LOGIN ===== -->
+                <form id="login-form">
+                    <!-- Campo: Email -->
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control bg-dark text-light" id="email" required>
+                        <!-- 
+                            type="email": Validação nativa de email
+                            bg-dark text-light: Tema escuro consistente
+                            required: Campo obrigatório
+                        -->
+                    </div>
+
+                    <!-- Campo: Senha -->
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Senha</label>
+                        <input type="password" class="form-control bg-dark text-light" id="password" required>
+                        <!-- 
+                            type="password": Oculta os caracteres digitados
+                            required: Campo obrigatório
+                        -->
+                    </div>
+
+                    <!-- Botão de Submissão -->
+                    <button type="submit" class="btn btn-primary w-100">Entrar</button>
+                    <!-- 
+                        type="submit": Dispara o evento submit do formulário
+                        w-100: Largura de 100% do container
+                    -->
+                </form>
+
+                <!-- ===== ÁREA DE MENSAGENS DE ERRO ===== -->
+                <div id="error-message" class="alert alert-danger mt-3 d-none"></div>
+                <!-- 
+                    alert alert-danger: Estilo de alerta de erro do Bootstrap
+                    mt-3: Margin top de 3 unidades
+                    d-none: Inicialmente oculto (será mostrado via JavaScript em caso de erro)
+                -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== WIDGET DE ACESSIBILIDADE VLIBRAS (LIBRAS) ===== -->
+    <div vw class="enabled">
+        <div vw-access-button class="active"></div>
+        <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-wrapper"></div>
+        </div>
+    </div>
+
+
+    <!-- Script do VLibras para tradução em Libras brasileira -->
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <script>
+        // Inicializa o widget de acessibilidade VLibras
+        new window.VLibras.Widget('https://vlibras.gov.br/app');
+    </script>
+
+    <!-- ===== SCRIPTS JAVASCRIPT ===== -->
+
+    <!-- Firebase SDK (Compat Mode para versão 9.6.1) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+
+    <!-- Configuração do Firebase (deve ser carregado antes dos scripts que usam Firebase) -->
+    <script src="firebase.config.js"></script>
+
+    <!-- Lógica de Autenticação -->
+    <script src="js/auth.js"></script>
+    <!-- 
+        Ordem de carregamento importante:
+        1. Firebase App
+        2. Firebase Auth  
+        3. Configuração Firebase
+        4. Script de autenticação que usa os anteriores
+    -->
+</body>
+
+</html>
