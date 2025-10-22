@@ -9,6 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(async user => {
         if (user) {
             currentUserProfile = await getUserProfile(user.uid);
+            
+            // Verifica se o usuário acabou de fazer login para mostrar a mensagem
+            if (sessionStorage.getItem('justLoggedIn') === 'true') {
+                alert('Login bem-sucedido! Seja bem-vindo(a).');
+                sessionStorage.removeItem('justLoggedIn');
+            }
+
             setupUI(user, currentUserProfile);
             navigateTo('dashboard');
             setupEventListeners();

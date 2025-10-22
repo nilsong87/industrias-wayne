@@ -61,16 +61,20 @@ if (loginForm) {
                         loginForm.querySelector('input[type="email"]').disabled = true;
                         loginForm.querySelector('input[type="password"]').disabled = true;
 
-                        messageDiv.textContent = 'Acesso Válido! Seja Bem Vindo.';
+                        messageDiv.textContent = 'Logado! Redirecionando...';
                         messageDiv.classList.remove('d-none', 'alert-danger');
                         messageDiv.classList.add('alert-success');
-
+                        
+                        sessionStorage.setItem('justLoggedIn', 'true');
                         setTimeout(() => {
                             window.location.replace('index.html');
-                        }, 2000);
+                        }, 8000);
                     } else {
                         alert('Acesso Válido! Seja Bem Vindo.');
-                        window.location.replace('index.html');
+                        sessionStorage.setItem('justLoggedIn', 'true');
+                        setTimeout(() => {
+                            window.location.replace('index.html');
+                        }, 5000);
                     }
                 }).catch(err => {
                     let friendlyMessage = 'Email ou senha incorretos. Tente novamente!';
