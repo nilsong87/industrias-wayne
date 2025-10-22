@@ -70,12 +70,13 @@ const generateDashboardHTML = () => {
 };
 
 const generateResourcesHTML = (profile) => {
-    const canManage = profile.role === 'admin' || profile.role === 'manager';
+    // O botão de adicionar e a coluna de ações só devem aparecer se o usuário puder gerenciar algum tipo de recurso.
+    const canManageAnyType = getManagableResourceTypes(profile).length > 0;
     
     return `
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2>Gestão de Recursos ${profile.department !== 'all' ? `(${profile.department})` : ''}</h2>
-            ${canManage ? `<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#resource-modal" id="add-resource-btn"><i class="bi bi-plus-circle"></i> Adicionar Recurso</button>` : ''}
+            ${canManageAnyType ? `<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#resource-modal" id="add-resource-btn"><i class="bi bi-plus-circle"></i> Adicionar Recurso</button>` : ''}
         </div>
         <div class="table-responsive">
             <table class="table table-hover">
@@ -85,7 +86,7 @@ const generateResourcesHTML = (profile) => {
                         <th>Nome</th>
                         <th>Tipo</th>
                         <th>Status</th>
-                        ${canManage ? '<th>Ações</th>' : ''}
+                        ${canManageAnyType ? '<th>Ações</th>' : ''}
                     </tr>
                 </thead>
                 <tbody id="resources-table-body"></tbody>
@@ -99,33 +100,37 @@ const generateResourcesHTML = (profile) => {
 const renderResources = (resources, profile) => {
     const tableBody = document.getElementById('resources-table-body');
     if (!tableBody) return;
-    
-    const canManage = profile.role === 'admin' || profile.role === 'manager';
-    
+
+    const canManageAnyType = getManagableResourceTypes(profile).length > 0;
+
     if (resources.length === 0) {
-        const colSpan = canManage ? 5 : 4;
+        const colSpan = canManageAnyType ? 5 : 4;
         tableBody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center">Nenhum recurso encontrado.</td></tr>`;
         return;
     }
-    
+
     let html = '';
     resources.forEach(doc => {
         const resource = doc.data();
         const badgeClass = resource.status === 'Operacional' ? 'primary' : resource.status === 'Em Manutenção' ? 'warning' : 'danger';
         
+        // Verifica se o usuário pode gerenciar ESTE tipo de recurso
+        const canManageThisType = canManageResourceType(profile, resource.type);
+
         html += `
             <tr data-id="${doc.id}">
                 <td>${doc.id}</td>
                 <td>${resource.name}</td>
                 <td>${resource.type}</td>
                 <td><span class="badge bg-${badgeClass}">${resource.status}</span></td>
-                ${canManage ? `<td><button class="btn btn-sm btn-warning edit-btn"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-danger delete-btn"><i class="bi bi-trash"></i></button></td>` : ''}
+                ${canManageAnyType ? `<td>${canManageThisType ? `<button class="btn btn-sm btn-warning edit-btn"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-danger delete-btn"><i class="bi bi-trash"></i></button>` : ''}</td>` : ''}
             </tr>
         `;
     });
-    
+
     tableBody.innerHTML = html;
 };
+
 
 // ===== CARREGAMENTO DE DADOS =====
 

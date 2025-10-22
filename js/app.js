@@ -1,9 +1,6 @@
 // ===== VARIÁVEIS GLOBAIS E INICIALIZAÇÃO =====
 
-// Armazena o perfil do usuário atual (role e department)
-let currentUserProfile = { role: 'employee', department: 'none' }; // Valor padrão
-
-// Referência para o modal de recursos
+let currentUserProfile = { role: 'employee', department: 'none' };
 let resourceModal;
 
 // ===== INICIALIZAÇÃO DA APLICAÇÃO =====
@@ -12,22 +9,43 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(async user => {
         if (user) {
             currentUserProfile = await getUserProfile(user.uid);
-            console.log('User logged in:', user.email, 'Profile:', currentUserProfile);
-            
             setupUI(user, currentUserProfile);
             navigateTo('dashboard');
             setupEventListeners();
         } else {
-            console.log('User logged out');
             currentUserProfile = { role: 'employee', department: 'none' };
             setupUI();
-            
             if (window.location.pathname.includes('index.html')) {
                 window.location.replace('login.html');
             }
         }
     });
 });
+
+// ===== FUNÇÕES AUXILIARES DE UI =====
+
+function populateResourceTypeDropdown(profile, selectedType = null) {
+    const typeSelect = document.getElementById('resource-type');
+    const manageableTypes = getManagableResourceTypes(profile);
+
+    // DEBUG: Log para verificar quais tipos estão sendo carregados
+    console.log('DEBUG: Tipos de recursos gerenciáveis para o perfil atual:', manageableTypes);
+
+    typeSelect.innerHTML = ''; // Limpa opções existentes
+    manageableTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type;
+        option.textContent = type;
+        if (type === selectedType) {
+            option.selected = true;
+        }
+        typeSelect.appendChild(option);
+    });
+
+    // Desabilita o campo se não for admin ou o gerente de segurança
+    const isSecurityManager = profile.role === 'manager' && profile.department.trim() === 'Segurança';
+    typeSelect.disabled = profile.role !== 'admin' && !isSecurityManager;
+}
 
 // ===== CONFIGURAÇÃO DE EVENT LISTENERS =====
 
@@ -43,11 +61,7 @@ function setupEventListeners() {
         resourceForm.reset();
         document.getElementById('resource-id').value = '';
         document.getElementById('resource-modal-title').textContent = 'Adicionar Recurso';
-        const backdrops = document.querySelectorAll('.modal-backdrop');
-        backdrops.forEach(backdrop => backdrop.remove());
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = 'auto';
-        document.body.style.paddingRight = '';
+        document.getElementById('resource-type').disabled = false; // Reabilita o campo ao fechar
     });
 
     navLinks.addEventListener('click', (e) => {
@@ -58,65 +72,71 @@ function setupEventListeners() {
     });
 
     appContent.addEventListener('click', async (e) => {
+        const addBtn = e.target.closest('#add-resource-btn');
         const editBtn = e.target.closest('.edit-btn');
         const deleteBtn = e.target.closest('.delete-btn');
 
+        if (addBtn) {
+            document.getElementById('resource-modal-title').textContent = 'Adicionar Recurso';
+            populateResourceTypeDropdown(currentUserProfile);
+            resourceModal.show();
+        }
+
         if (editBtn) {
             const id = editBtn.closest('tr').dataset.id;
-            resourceForm.reset();
-            document.getElementById('resource-id').value = id;
-            document.getElementById('resource-modal-title').textContent = 'Carregando...';
-            resourceModal.show();
-
+            
             try {
                 const resource = await getResource(id);
-                if (resource) {
-                    document.getElementById('resource-name').value = resource.name;
-                    document.getElementById('resource-type').value = resource.type;
-                    document.getElementById('resource-status').value = resource.status;
-                    document.getElementById('resource-modal-title').textContent = 'Editar Recurso';
-
-                    // Para managers, desabilita a edição do tipo de recurso
-                    if (currentUserProfile.role === 'manager') {
-                        document.getElementById('resource-type').disabled = true;
-                    }
+                if (!resource) {
+                    alert('Recurso não encontrado.');
+                    return;
                 }
+
+                if (!canManageResourceType(currentUserProfile, resource.type)) {
+                    alert('Você não tem permissão para editar este tipo de recurso.');
+                    return;
+                }
+
+                resourceForm.reset();
+                document.getElementById('resource-id').value = id;
+                document.getElementById('resource-modal-title').textContent = 'Editar Recurso';
+                
+                document.getElementById('resource-name').value = resource.name;
+                document.getElementById('resource-status').value = resource.status;
+                
+                populateResourceTypeDropdown(currentUserProfile, resource.type);
+                
+                resourceModal.show();
+
             } catch (error) {
-                console.error("Erro ao buscar recurso:", error);
+                console.error("Erro ao buscar recurso para edição:", error);
+                alert('Erro ao carregar dados do recurso.');
             }
         }
 
         if (deleteBtn) {
-            const row = deleteBtn.closest('tr[data-id]');
-            if (!row) return;
-            const id = row.getAttribute('data-id');
-
-            // Confirmação da ação
-            if (!confirm('Deseja realmente excluir este recurso? Esta ação não pode ser desfeita.')) return;
+            const id = deleteBtn.closest('tr').dataset.id;
 
             try {
-                // Verifica permissão local (garanta também regras no Firestore)
-                if (currentUserProfile.role !== 'admin' && currentUserProfile.role !== 'manager') {
-                    alert('Apenas administradores e gerentes podem excluir recursos.');
+                const resource = await getResource(id);
+                if (!resource) {
+                    alert('Recurso não encontrado.');
                     return;
                 }
 
-                // Se houver função deleteResource fornecida em js/database.js, use-a
-                if (typeof window.deleteResource === 'function') {
-                    await window.deleteResource(id);
-                } else {
-                    // Fallback direto para Firestore
-                    await window.db.collection('resources').doc(id).delete();
+                if (!canManageResourceType(currentUserProfile, resource.type)) {
+                    alert('Você não tem permissão para excluir este tipo de recurso.');
+                    return;
                 }
 
-                console.log('Recurso excluído:', id);
-
-                // Atualiza UI
-                await loadResources(currentUserProfile);
-                await loadDashboardData(currentUserProfile);
+                if (confirm('Deseja realmente excluir este recurso? Esta ação não pode ser desfeita.')) {
+                    await deleteResource(id);
+                    await loadResources(currentUserProfile);
+                    await loadDashboardData(currentUserProfile); // Atualiza o dashboard também
+                }
             } catch (err) {
                 console.error('Erro ao excluir recurso:', err);
-                alert('Erro ao excluir recurso: ' + (err.message || err));
+                alert('Erro ao excluir recurso.');
             }
         }
     });
@@ -124,23 +144,18 @@ function setupEventListeners() {
     resourceForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const typeInput = document.getElementById('resource-type');
-        let resourceType = typeInput.value;
-
-        // Se o usuário for um manager, o tipo é fixo ao seu departamento
-        if (currentUserProfile.role === 'manager') {
-            const requiredType = departmentToResourceType[currentUserProfile.department];
-            if (requiredType) {
-                resourceType = requiredType;
-            }
-        }
-
         const data = {
             id: document.getElementById('resource-id').value,
             name: document.getElementById('resource-name').value,
-            type: resourceType,
+            type: document.getElementById('resource-type').value,
             status: document.getElementById('resource-status').value,
         };
+
+        // Validação final de permissão antes de salvar
+        if (!canManageResourceType(currentUserProfile, data.type)) {
+            alert('Operação não permitida. Você não pode criar ou alterar para este tipo de recurso.');
+            return;
+        }
         
         await saveResource(data);
         resourceModal.hide();

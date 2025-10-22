@@ -2,14 +2,6 @@
 
 const resourceCollection = db.collection('resources');
 
-// ===== MAPEAMENTO DE DEPARTAMENTOS PARA TIPOS DE RECURSOS =====
-
-const departmentToResourceType = {
-    'Segurança': 'Dispositivo de Segurança',
-    'Transporte': 'Veículo',
-    'TI': 'Tecnologia'
-};
-
 // ===== GERENCIAMENTO DE RECURSOS (CRUD OPERATIONS) =====
 
 function saveResource(data) {
@@ -30,37 +22,32 @@ function saveResource(data) {
 }
 
 /**
- * Obtém recursos baseados no departamento do usuário.
- * @param {Object} userProfile - Perfil do usuário, incluindo o departamento.
+ * Obtém recursos baseados no perfil do usuário.
+ * @param {Object} userProfile - Perfil do usuário, incluindo role e department.
  * @returns {Promise<QuerySnapshot>} Promise com os documentos dos recursos filtrados.
  */
 function getResources(userProfile) {
     console.log('[DEBUG] getResources chamado com o perfil:', userProfile);
     let query = resourceCollection.orderBy('createdAt', 'desc');
 
-    // Aplica filtro apenas se o usuário não for admin
+    // Admins veem tudo. Para outros, filtramos por tipo de recurso.
     if (userProfile.role !== 'admin') {
-        const userDepartment = userProfile.department;
+        const userDepartment = userProfile.department ? userProfile.department.trim() : null;
+        
+        // Usa a variável de config.js como fonte da verdade para os tipos que o departamento pode VER.
+        // Assumimos que os tipos que um gerente pode gerenciar são os mesmos que um colaborador pode ver.
+        const resourceTypes = departmentManagedTypes[userDepartment] || [];
+        
         console.log(`[DEBUG] Departamento do usuário: "${userDepartment}"`);
+        console.log('[DEBUG] Tipos de recursos permitidos para visualização:', resourceTypes);
 
-        let resourceTypes = [];
-
-        // Definir quais tipos de recurso cada departamento pode acessar
-        if (userDepartment === 'Segurança') {
-            resourceTypes = ['Dispositivo de Segurança', 'Equipamento'];
-            console.log('[DEBUG] Tipos de recursos para Segurança:', resourceTypes);
-        } else if (userDepartment === 'Transporte') {
-            resourceTypes = ['Veículo'];
-            console.log('[DEBUG] Tipos de recursos para Transporte:', resourceTypes);
-        } else if (userDepartment === 'TI') {
-            resourceTypes = ['Tecnologia'];
-            console.log('[DEBUG] Tipos de recursos para TI:', resourceTypes);
-        }
-
-        // Aplicar filtro para múltiplos tipos usando 'in'
+        // O Firestore lança um erro se a lista para a cláusula 'in' estiver vazia.
         if (resourceTypes.length > 0) {
-            console.log('[DEBUG] Aplicando filtro: where(\'type\', \'in\',', resourceTypes, ')');
             query = query.where('type', 'in', resourceTypes);
+        } else {
+            // Se um usuário (não-admin) não tem tipos de recursos associados, ele não deve ver nada.
+            // Retornamos uma query que propositalmente não encontrará nenhum documento.
+            return query.where('__no_results__', '==', true).get();
         }
     } else {
         console.log('[DEBUG] Usuário é admin. Nenhum filtro de departamento aplicado.');
@@ -91,7 +78,8 @@ async function getUserProfile(userId) {
         
         if (userDoc.exists) {
             return userDoc.data();
-        } else {
+        }
+         else {
             console.warn(`User document not found for UID: ${userId}. Defaulting to employee profile.`);
             return { role: 'employee', department: 'none' }; // Perfil padrão
         }
