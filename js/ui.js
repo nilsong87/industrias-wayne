@@ -59,7 +59,7 @@ const generateDashboardHTML = () => {
             <div class="col-md-6 mb-4">
                 <div class="card bg-dark-2 text-light h-100">
                     <div class="card-body" style="max-height:500px; height:500px; padding:0.75rem;">
-                        <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+                        <div style="width:100%; height:100%; display:flex; align-items-center; justify-content:center;">
                             <canvas id="resources-by-status-chart" style="width:100%; height:100%;"></canvas>
                         </div>
                     </div>
@@ -70,13 +70,17 @@ const generateDashboardHTML = () => {
 };
 
 const generateResourcesHTML = (profile) => {
-    // O botão de adicionar e a coluna de ações só devem aparecer se o usuário puder gerenciar algum tipo de recurso.
     const canManageAnyType = getManagableResourceTypes(profile).length > 0;
     
     return `
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2>Gestão de Recursos ${profile.department !== 'all' ? `(${profile.department})` : ''}</h2>
-            ${canManageAnyType ? `<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#resource-modal" id="add-resource-btn"><i class="bi bi-plus-circle"></i> Adicionar Recurso</button>` : ''}
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div class="col-12 col-md-5">
+                <h2>Gestão de Recursos ${profile.department !== 'all' ? `(${profile.department})` : ''}</h2>
+            </div>
+            <div class="col-12 col-md-6 d-flex gap-2">
+                <input type="text" id="resource-id-filter" class="form-control bg-dark text-light" placeholder="Filtrar por ID...">
+                ${canManageAnyType ? `<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#resource-modal" id="add-resource-btn"><i class="bi bi-plus-circle"></i> Adicionar</button>` : ''}
+            </div>
         </div>
         <div class="table-responsive">
             <table class="table table-hover">
@@ -94,6 +98,7 @@ const generateResourcesHTML = (profile) => {
         </div>
     `;
 };
+
 
 // ===== RENDERIZAÇÃO DE DADOS =====
 

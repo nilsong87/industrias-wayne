@@ -161,6 +161,28 @@ function setupEventListeners() {
         resourceModal.hide();
         loadResources(currentUserProfile);
     });
+
+    // Listener para o filtro de ID
+    appContent.addEventListener('keyup', (e) => {
+        if (e.target.id === 'resource-id-filter') {
+            const filterText = e.target.value.toLowerCase();
+            const tableBody = document.getElementById('resources-table-body');
+            if (!tableBody) return;
+            const rows = tableBody.querySelectorAll('tr');
+
+            rows.forEach(row => {
+                const idCell = row.querySelector('td:first-child');
+                if (idCell) {
+                    const idText = idCell.textContent.toLowerCase();
+                    if (idText.includes(filterText)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        }
+    });
 }
 
 // ===== SISTEMA DE NAVEGAÇÃO =====
