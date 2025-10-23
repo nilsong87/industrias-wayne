@@ -78,7 +78,7 @@ const generateResourcesHTML = (profile) => {
                 <h2>Gestão de Recursos ${profile.department !== 'all' ? `(${profile.department})` : ''}</h2>
             </div>
             <div class="col-12 col-md-6 d-flex gap-2">
-                <input type="text" id="resource-id-filter" class="form-control bg-dark text-light" placeholder="Filtrar por ID...">
+                <input type="text" id="resource-name-filter" class="form-control bg-dark text-light" placeholder="Filtrar por nome...">
                 ${canManageAnyType ? `<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#resource-modal" id="add-resource-btn"><i class="bi bi-plus-circle"></i> Adicionar</button>` : ''}
             </div>
         </div>

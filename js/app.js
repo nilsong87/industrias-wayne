@@ -171,17 +171,17 @@ function setupEventListeners() {
 
     // Listener para o filtro de ID
     appContent.addEventListener('keyup', (e) => {
-        if (e.target.id === 'resource-id-filter') {
+        if (e.target.id === 'resource-name-filter') {
             const filterText = e.target.value.toLowerCase();
             const tableBody = document.getElementById('resources-table-body');
             if (!tableBody) return;
             const rows = tableBody.querySelectorAll('tr');
 
             rows.forEach(row => {
-                const idCell = row.querySelector('td:first-child');
-                if (idCell) {
-                    const idText = idCell.textContent.toLowerCase();
-                    if (idText.includes(filterText)) {
+                const nameCell = row.querySelector('td:nth-child(2)'); // A segunda coluna (td) é o Nome
+                if (nameCell) {
+                    const nameText = nameCell.textContent.toLowerCase();
+                    if (nameText.includes(filterText)) {
                         row.style.display = '';
                     } else {
                         row.style.display = 'none';
