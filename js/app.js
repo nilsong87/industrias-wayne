@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(async user => {
         if (user) {
             currentUserProfile = await getUserProfile(user.uid);
-            
+
             // Verifica se o usuário acabou de fazer login para mostrar a mensagem
             if (sessionStorage.getItem('justLoggedIn') === 'true') {
                 alert('Login bem-sucedido! Seja bem-vindo(a).');
@@ -60,7 +60,7 @@ function setupEventListeners() {
     const navLinks = document.querySelector('.navbar-nav');
     const appContent = document.getElementById('app-content');
     const resourceForm = document.getElementById('resource-form');
-    
+
     const modalEl = document.getElementById('resource-modal');
     resourceModal = new bootstrap.Modal(modalEl);
 
@@ -91,7 +91,7 @@ function setupEventListeners() {
 
         if (editBtn) {
             const id = editBtn.closest('tr').dataset.id;
-            
+
             try {
                 const resource = await getResource(id);
                 if (!resource) {
@@ -107,12 +107,12 @@ function setupEventListeners() {
                 resourceForm.reset();
                 document.getElementById('resource-id').value = id;
                 document.getElementById('resource-modal-title').textContent = 'Editar Recurso';
-                
+
                 document.getElementById('resource-name').value = resource.name;
                 document.getElementById('resource-status').value = resource.status;
-                
+
                 populateResourceTypeDropdown(currentUserProfile, resource.type);
-                
+
                 resourceModal.show();
 
             } catch (error) {
@@ -150,7 +150,7 @@ function setupEventListeners() {
 
     resourceForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         const data = {
             id: document.getElementById('resource-id').value,
             name: document.getElementById('resource-name').value,
@@ -163,24 +163,24 @@ function setupEventListeners() {
             alert('Operação não permitida. Você não pode criar ou alterar para este tipo de recurso.');
             return;
         }
-        
+
         await saveResource(data);
         resourceModal.hide();
         loadResources(currentUserProfile);
     });
 
-    // Listener para o filtro de ID
+    // Listener para o filtro de nome (com tratamento de acentos)
     appContent.addEventListener('keyup', (e) => {
         if (e.target.id === 'resource-name-filter') {
-            const filterText = e.target.value.toLowerCase();
+            const filterText = removeAccents(e.target.value.toLowerCase());
             const tableBody = document.getElementById('resources-table-body');
             if (!tableBody) return;
             const rows = tableBody.querySelectorAll('tr');
 
             rows.forEach(row => {
-                const nameCell = row.querySelector('td:nth-child(2)'); // A segunda coluna (td) é o Nome
+                const nameCell = row.querySelector('td:nth-child(2)');
                 if (nameCell) {
-                    const nameText = nameCell.textContent.toLowerCase();
+                    const nameText = removeAccents(nameCell.textContent.toLowerCase());
                     if (nameText.includes(filterText)) {
                         row.style.display = '';
                     } else {
@@ -190,6 +190,11 @@ function setupEventListeners() {
             });
         }
     });
+
+    // Função para remover acentos
+    function removeAccents(text) {
+        return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
 }
 
 // ===== SISTEMA DE NAVEGAÇÃO =====
@@ -199,22 +204,22 @@ function navigateTo(page) {
     const navDashboard = document.getElementById('nav-dashboard');
     const navResources = document.getElementById('nav-resources');
 
-    if(navDashboard) navDashboard.classList.remove('active');
-    if(navResources) navResources.classList.remove('active');
+    if (navDashboard) navDashboard.classList.remove('active');
+    if (navResources) navResources.classList.remove('active');
 
     if (page === 'dashboard') {
         appContent.innerHTML = generateDashboardHTML(currentUserProfile);
-        if(navDashboard) navDashboard.classList.add('active');
+        if (navDashboard) navDashboard.classList.add('active');
         loadDashboardData(currentUserProfile);
     }
     else if (page === 'resources') {
         appContent.innerHTML = generateResourcesHTML(currentUserProfile);
-        if(navResources) navResources.classList.add('active');
+        if (navResources) navResources.classList.add('active');
         loadResources(currentUserProfile);
     }
     else {
         appContent.innerHTML = generateDashboardHTML(currentUserProfile);
-        if(navDashboard) navDashboard.classList.add('active');
+        if (navDashboard) navDashboard.classList.add('active');
         loadDashboardData(currentUserProfile);
     }
 }
